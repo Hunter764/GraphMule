@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import GraphVisualizer from '../components/GraphVisualizer';
 import ResultsDashboard from '../components/ResultsDashboard';
-import { UploadCloud, Play, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
+import LandingPage from '../components/LandingPage';
+import { UploadCloud, Play, AlertTriangle, CheckCircle, ArrowLeft } from 'lucide-react';
 
 export default function Home() {
+  const [view, setView] = useState('landing'); // 'landing' | 'app'
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
@@ -110,17 +112,32 @@ export default function Home() {
       document.body.removeChild(link);
   };
 
+  // Render Landing Page
+  if (view === 'landing') {
+    return <LandingPage onStart={() => setView('app')} />;
+  }
+
+  // Render Main App
   return (
     <main className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
         <header className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-6">
-          <div>
-             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-               GraphMule
-             </h1>
-             <p className="text-zinc-500 dark:text-zinc-400">Financial Crime Detection Engine</p>
+          <div className="flex items-center gap-4">
+             <button 
+                onClick={() => setView('landing')}
+                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full transition-colors"
+                title="Back to Home"
+             >
+                <ArrowLeft className="w-5 h-5" />
+             </button>
+             <div>
+                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                    GraphMule
+                </h1>
+                <p className="text-zinc-500 dark:text-zinc-400">Financial Crime Detection Engine</p>
+             </div>
           </div>
           <div className="flex gap-4">
              {/* RIFT Hackathon Badge or similar */}
