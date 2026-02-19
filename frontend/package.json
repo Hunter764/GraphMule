@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@shadergradient/react": "^2.4.20",
     "clsx": "^2.1.0",
     "framer-motion": "^12.34.2",
     "lucide-react": "^0.300.0",
@@ -16,7 +17,8 @@
     "react": "^18",
     "react-dom": "^18",
     "react-force-graph-2d": "^1.25.0",
-    "tailwind-merge": "^2.2.0"
+    "tailwind-merge": "^2.2.0",
+    "three": "^0.183.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.17",
