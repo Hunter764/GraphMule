@@ -5,7 +5,33 @@ import pandas as pd
 import networkx as nx
 import io
 import time
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, Field
 from algorithms import detect_cycles, detect_smurfing, detect_shell_accounts
+
+# Exact Schema Models
+class SuspiciousAccount(BaseModel):
+    account_id: str
+    suspicion_score: float = Field(ge=0, le=100)
+    detected_patterns: List[str]
+    ring_id: str
+
+class FraudRing(BaseModel):
+    ring_id: str
+    member_accounts: List[str]
+    pattern_type: str
+    risk_score: float
+
+class SummaryStats(BaseModel):
+    total_accounts_analyzed: int
+    suspicious_accounts_flagged: int
+    fraud_rings_detected: int
+    processing_time_seconds: float
+
+class FraudReportSchema(BaseModel):
+    suspicious_accounts: List[SuspiciousAccount]
+    fraud_rings: List[FraudRing]
+    summary: SummaryStats
 
 app = FastAPI()
 
@@ -61,8 +87,8 @@ async def analyze_transactions(file: UploadFile = File(...)):
         # 1. Detect Cycles (Rings)
         cycles = detect_cycles(G) # List of lists of nodes
         
-        # 2. Detect Smurfing
-        smurfing_data = detect_smurfing(G) # {'fan_in': [], 'fan_out': []}
+        # 2. Detect Smurfing (Using DataFrame for temporal analysis)
+        smurfing_data = detect_smurfing(df) # {'fan_in': [], 'fan_out': []}
         
         # 3. Detect Shell Accounts
         shell_accounts = detect_shell_accounts(G) # List of nodes
@@ -144,7 +170,10 @@ async def analyze_transactions(file: UploadFile = File(...)):
             }
         }
         
-        return JSONResponse(content=response_data)
+        # Ensure schema validation before download/response
+        validated_data = FraudReportSchema.model_validate(response_data)
+        
+        return JSONResponse(content=validated_data.model_dump())
 
     except Exception as e:
         import traceback
