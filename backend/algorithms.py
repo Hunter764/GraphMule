@@ -1,90 +1,86 @@
 import networkx as nx
+import pandas as pd
 
 def detect_cycles(G: nx.DiGraph, min_len=3, max_len=5):
     """
     Detects circular money flow of length 3-5.
-    Returns a list of cycles (list of nodes).
     """
     cycles = []
     try:
-        # simple_cycles is computationally expensive for large graphs, 
-        # but for <10k nodes/edges it should be manageable within 30s 
-        # provided the graph isn't fully connected.
-        # We can optimize by using limit or Johnson's algorithm if needed.
-        raw_cycles = nx.simple_cycles(G)
-        
+        raw_cycles = list(nx.simple_cycles(G))
         for cycle in raw_cycles:
             if min_len <= len(cycle) <= max_len:
                 cycles.append(cycle)
-            # Optimization: break if too many cycles found? 
-            # For now, let's assume the challenge dataset is manageable.
-            
     except Exception as e:
         print(f"Error in cycle detection: {e}")
-        
     return cycles
 
-def detect_smurfing(G: nx.DiGraph, threshold=10):
+def detect_smurfing(df: pd.DataFrame, time_col='timestamp', threshold=10, window_hours=72):
     """
-    Detects Fan-In and Fan-Out patterns.
-    Fan-In: Many sends to one (In-Degree >= threshold)
-    Fan-Out: One sends to many (Out-Degree >= threshold)
-    Returns a dict with 'fan_in' and 'fan_out' lists.
+    Detects Fan-In and Fan-Out patterns within a rolling time window.
+    Applies FP control for legitimate high-volume merchants and payroll.
     """
-    fan_in = [n for n, d in G.in_degree() if d >= threshold]
-    fan_out = [n for n, d in G.out_degree() if d >= threshold]
+    df = df.copy()
+    df[time_col] = pd.to_datetime(df[time_col])
     
-    return {"fan_in": fan_in, "fan_out": fan_out}
+    in_degree = df.groupby('receiver_id').size()
+    out_degree = df.groupby('sender_id').size()
+    
+    fan_in = set()
+    fan_out = set()
+    
+    df_sorted = df.sort_values(by=time_col)
+    
+    # Fan-in (Aggregators)
+    receivers = df_sorted.set_index(time_col).groupby('receiver_id')
+    for node, group in receivers:
+        rolling_count = group.rolling(f'{window_hours}h').count()['transaction_id']
+        if rolling_count.max() >= threshold:
+            out_d = out_degree.get(node, 0)
+            in_d = in_degree.get(node, 0)
+            # FP Control: Merchant (high in, low out)
+            if in_d >= threshold and out_d <= 2:
+                continue
+            if in_d > 30 and out_d < 5:
+                continue
+            fan_in.add(node)
+                
+    # Fan-out (Dispersers)
+    senders = df_sorted.set_index(time_col).groupby('sender_id')
+    for node, group in senders:
+        rolling_count = group.rolling(f'{window_hours}h').count()['transaction_id']
+        if rolling_count.max() >= threshold:
+            out_d = out_degree.get(node, 0)
+            in_d = in_degree.get(node, 0)
+            # FP Control: Payroll (high out, low in)
+            if out_d >= threshold and in_d <= 2:
+                continue
+            if out_d > 30 and in_d < 5:
+                continue
+            fan_out.add(node)
+                
+    return {"fan_in": list(fan_in), "fan_out": list(fan_out)}
 
 def detect_shell_accounts(G: nx.DiGraph):
     """
     Detects Layered Shell Networks.
-    Intermediary nodes with low transaction counts (degree 2-3) that act as bridges.
+    Look for chains of 3+ hops (A->B->C->D) where intermediate accounts (B, C) 
+    have only 2-3 total transactions.
     """
-    shell_accounts = []
-    for node in G.nodes():
-        degree = G.degree(node)
-        if 2 <= degree <= 3:
-            # Must be an intermediate node (receive and send)
-            if G.in_degree(node) > 0 and G.out_degree(node) > 0:
-                shell_accounts.append(node)
+    shell_nodes = set()
+    total_degree = {n: G.degree(n) for n in G.nodes()}
+    
+    # 1. Identify all potential shell candidates (degree 2 or 3, acts as pass-through)
+    candidates = set()
+    for n, d in total_degree.items():
+        if 2 <= d <= 3 and G.in_degree(n) > 0 and G.out_degree(n) > 0:
+            candidates.add(n)
+            
+    # 2. Find if candidates connect to other candidates (forming a chain of shells)
+    for u in candidates:
+        for v in G.successors(u):
+            if v in candidates:
+                shell_nodes.add(u)
+                shell_nodes.add(v)
                 
-    return shell_accounts
-
-def calculate_suspicion_score(node, G, rings, smurfing, shell_accounts):
-    """
-    Calculates a suspicion score (0-100) based on involvement in patterns.
-    """
-    score = 0
-    patterns = []
-    ring_ids = []
-
-    # Check Ring Involvement
-    in_ring = False
-    for i, ring in enumerate(rings):
-        if node in ring:
-            score += 50
-            patterns.append(f"cycle_length_{len(ring)}")
-            ring_ids.append(f"RING_{i+1:03d}")
-            in_ring = True
-    
-    # Check Smurfing
-    if node in smurfing['fan_in']:
-        score += 30
-        patterns.append("high_fan_in")
-    if node in smurfing['fan_out']:
-        score += 30
-        patterns.append("high_fan_out")
-        
-    # Check Shell
-    if node in shell_accounts:
-        score += 20
-        patterns.append("shell_account")
-        
-    score = min(score, 100)
-    
-    return {
-        "score": score,
-        "patterns": list(set(patterns)), # unique patterns
-        "ring_ids": list(set(ring_ids))
-    }
+    return list(shell_nodes)
