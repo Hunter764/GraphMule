@@ -3,7 +3,8 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import {
   ArrowRight, Shield, Activity, Share2, Play, CheckCircle2, Menu, 
   Zap, Lock, Globe, ChevronRight, BarChart3, Search, Fingerprint,
-  Twitter, Instagram, Linkedin, Github, Facebook
+  Twitter, Instagram, Linkedin, Github, Facebook,
+  Cpu, Server, Database, Network, Code2, Terminal, Layers, Cloud, Box
 } from 'lucide-react';
 
 const fadeInUp = {
@@ -20,6 +21,25 @@ const staggerContainer = {
       delayChildren: 0.2
     }
   }
+};
+
+const WaterGradientBackground = () => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Deep Dark Base */}
+      <div className="absolute inset-0 bg-[#050505]" />
+      
+      {/* Static Liquid Flow PNG (Optmized) */}
+      <img
+        src="/background-flow.png"
+        alt="Background Flow"
+        className="absolute inset-0 w-full h-full object-cover opacity-80"
+      />
+      
+      {/* Gradient Vignette for Depth */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505]" />
+    </div>
+  );
 };
 
 export default function LandingPage({ onStart }) {
@@ -124,7 +144,7 @@ export default function LandingPage({ onStart }) {
             
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-              {['Capabilities', 'Solutions', 'Technology', 'About'].map((item) => (
+              {['About', 'Capabilities', 'Solutions', 'Technology'].map((item) => (
                 <a 
                   key={item} 
                   href={`#${item.toLowerCase()}`} 
@@ -168,8 +188,9 @@ export default function LandingPage({ onStart }) {
       </motion.nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden min-h-screen flex flex-col justify-center">
+      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden min-h-screen flex flex-col justify-center" id="about">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          
           
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
@@ -222,85 +243,112 @@ export default function LandingPage({ onStart }) {
             </button>
           </motion.div>
 
-          {/* Abstract Graph Simulation */}
+          {/* Redesigned Metrics Section - Planet Theme */}
           <motion.div 
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-24 relative mx-auto max-w-5xl group"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+            className="mt-32 relative mx-auto max-w-4xl"
           >
-             <div className="absolute -inset-1 bg-gradient-to-r from-[#814ac8] to-[#df7afe] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-             <div className="relative bg-[#0a0a0a] rounded-xl border border-white/10 shadow-2xl overflow-hidden aspect-[16/9] md:aspect-[21/9] ring-1 ring-white/5">
-                
-                {/* Graph Background Pattern */}
-                <div className="absolute inset-0 bg-[url('https://res.cloudinary.com/djv4zxxb2/image/upload/v1718045557/graph-bg_h37w1l.png')] bg-cover bg-center opacity-20 mix-blend-screen grayscale"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/50"></div>
-                
-                {/* Animated Graph Nodes (Simulated) */}
-                <div className="absolute inset-0">
-                    {[...Array(6)].map((_, i) => (
-                        <motion.div
-                            key={i}
-                            className="absolute w-3 h-3 rounded-full bg-[#df7afe] shadow-[0_0_15px_#df7afe]"
-                            initial={{ 
-                                x: Math.random() * 800, 
-                                y: Math.random() * 300,
-                                opacity: 0.3
-                            }}
-                            animate={{ 
-                                x: Math.random() * 800, 
-                                y: Math.random() * 300,
-                                opacity: [0.3, 0.8, 0.3]
-                            }}
-                            transition={{ 
-                                duration: 5 + Math.random() * 5, 
-                                repeat: Infinity, 
-                                repeatType: "mirror",
-                                ease: "easeInOut"
-                            }}
-                        />
-                    ))}
-                </div>
-
-                {/* Dashboard Overlay UI */}
-                <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
-                   <motion.div 
-                     initial={{ x: -50, opacity: 0 }}
-                     animate={{ x: 0, opacity: 1 }}
-                     transition={{ delay: 1 }}
-                     className="bg-[#121212]/80 backdrop-blur-md border border-white/10 p-5 rounded-xl max-w-sm w-full shadow-2xl"
-                   >
-                      <div className="flex items-center gap-3 mb-4">
-                         <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
-                            <Shield className="w-5 h-5 text-red-500" />
-                         </div>
-                         <div>
-                            <h3 className="font-bold text-white text-sm">Suspicious Activity Detected</h3>
-                            <p className="text-xs text-red-400 font-medium">Smurfing Pattern • 98% Confidence</p>
-                         </div>
-                      </div>
-                      <div className="space-y-3">
-                         <div className="flex justify-between text-xs text-zinc-500 font-medium">
-                            <span>Accounts Involved</span>
-                            <span className="text-white">12 Nodes</span>
-                         </div>
-                         <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: "98%" }}
-                              transition={{ duration: 1.5, delay: 1.5 }}
-                              className="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
-                            />
-                         </div>
-                      </div>
-                   </motion.div>
-                </div>
+             {/* Planet Background Effect */}
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] pointer-events-none">
+                <div className="absolute inset-0 bg-[#814ac8]/10 rounded-full blur-[100px]" />
+                <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-[#df7afe]/5 rounded-full blur-[80px]" />
              </div>
+
+             {/* Floating Card Container */}
+             <motion.div
+               animate={{ y: [-15, 15, -15] }}
+               transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+               className="relative z-10"
+             >
+                <div className="relative bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 rounded-3xl p-1 shadow-2xl ring-1 ring-white/5">
+                   {/* Inner Gradient Border */}
+                   <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+                   
+                   <div className="bg-[#050505]/80 rounded-[20px] p-8 md:p-10 relative overflow-hidden">
+                      {/* Subtle Grid Background */}
+                      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px]" />
+                      
+                      <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                         {/* Icon Circle */}
+                         <div className="relative group">
+                            <div className="absolute inset-0 bg-[#df7afe]/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500" />
+                            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                               <Shield className="w-10 h-10 text-[#df7afe] drop-shadow-[0_0_10px_rgba(223,122,254,0.5)]" />
+                            </div>
+                            
+                            {/* Orbiting Dot */}
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                              className="absolute inset-[-10px] rounded-full"
+                            >
+                               <div className="w-2 h-2 bg-[#814ac8] rounded-full shadow-[0_0_10px_#814ac8]" />
+                            </motion.div>
+                         </div>
+
+                         {/* Content */}
+                         <div className="flex-1 text-center md:text-left">
+                            <div className="flex flex-col md:flex-row items-center md:items-baseline gap-4 mb-4">
+                               <h3 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Suspicious Activity Detected</h3>
+                               <span className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-red-500 text-xs font-bold uppercase tracking-wider animate-pulse">
+                                  Critical Alert
+                               </span>
+                            </div>
+                            
+                            <p className="text-zinc-400 mb-8 max-w-lg mx-auto md:mx-0 leading-relaxed">
+                               Anomalous layering pattern detected across <span className="text-white font-medium">12 linked accounts</span> with high-velocity transactions matching known smurfing typologies.
+                            </p>
+
+                            {/* Metrics Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 border-t border-white/5 pt-6">
+                               <div>
+                                  <div className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Confidence</div>
+                                  <div className="text-2xl font-bold text-white">99.8%</div>
+                               </div>
+                               <div>
+                                  <div className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Risk Score</div>
+                                  <div className="text-2xl font-bold text-[#df7afe]">High</div>
+                               </div>
+                               <div>
+                                  <div className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Time to Detect</div>
+                                  <div className="text-2xl font-bold text-white">12ms</div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+             </motion.div>
+
+             {/* Background Stars / Particles */}
+             {[...Array(5)].map((_, i) => (
+                <motion.div
+                   key={i}
+                   className="absolute w-1 h-1 bg-white rounded-full"
+                   style={{
+                      top: `${Math.random() * 100}%`,
+                      left: `${Math.random() * 100}%`,
+                      opacity: Math.random() * 0.5 + 0.2
+                   }}
+                   animate={{ 
+                      scale: [1, 1.5, 1], 
+                      opacity: [0.3, 0.8, 0.3] 
+                   }}
+                   transition={{ 
+                      duration: 2 + Math.random() * 3, 
+                      repeat: Infinity,
+                      delay: Math.random() * 2 
+                   }}
+                />
+             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Feature Grid */}
+      {/* Feature Grid (Capabilities) */}
       <section className="py-32 relative z-10" id="capabilities">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
@@ -337,7 +385,7 @@ export default function LandingPage({ onStart }) {
               highlight={true}
             />
             <FeatureCard 
-              icon={<Lock className="w-6 h-6 text-[#3b82f6]" />}
+              icon={<Lock className="w-6 h-6 text-[#814ac8]" />}
               title="Shell Accounts"
               description="Pinpoint dormant or pass-through nodes that exist solely to move funds, characterizing them by degree and volume ratio."
               delay={0.2}
@@ -346,14 +394,224 @@ export default function LandingPage({ onStart }) {
         </div>
       </section>
 
-       {/* Stats Section */}
-       <section className="py-20 border-y border-white/5 bg-white/[0.02]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-                <StatItem value="99.9%" label="Accuracy" />
-                <StatItem value="<50ms" label="Latency" />
-                <StatItem value="24/7" label="Real-time" />
-                <StatItem value="10B+" label="Nodes Scanned" />
+      <div className="relative">
+        <WaterGradientBackground />
+
+        {/* Solutions Section - NEW */}
+        <section className="py-32 relative z-10" id="solutions">
+         
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mb-20"
+            >
+              <h2 className="text-sm font-bold text-[#df7afe] uppercase tracking-widest mb-3">Solutions</h2>
+              <h3 className="text-4xl md:text-6xl font-bold text-white tracking-tight">Enterprise-Grade Defense</h3>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+               {[
+                 { title: "AML Compliance", desc: "Automated monitoring for regulatory reporting and audit trails." },
+                 { title: "Payment Fraud", desc: "Real-time blocking of suspicious transactions before settlement." },
+                 { title: "Identity Theft", desc: "Detect synthetic identities through network link analysis." },
+                 { title: "Merchant Risk", desc: "Assess risk profiles of new and existing merchant accounts." },
+                 { title: "Crypto Tracing", desc: "Track illicit funds across blockchain hops and mixers." },
+                 { title: "Internal Audit", desc: "Identify employee collusion and embezzlement schemes." }
+               ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    whileHover={{ y: -5 }}
+                    className="group p-8 bg-[#0a0a0a]/40 backdrop-blur-sm border border-white/5 hover:border-[#814ac8]/50 rounded-3xl transition-all duration-500 cursor-default relative overflow-hidden"
+                  >
+                     <div className="absolute inset-0 bg-gradient-to-br from-[#814ac8]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                     <div className="absolute -right-10 -top-10 w-32 h-32 bg-[#814ac8]/20 blur-[50px] group-hover:bg-[#814ac8]/30 transition-all duration-500 rounded-full pointer-events-none" />
+                     
+                     <div className="relative z-10">
+                        <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 border border-white/5 group-hover:border-[#814ac8]/30">
+                           <CheckCircle2 className="w-6 h-6 text-zinc-500 group-hover:text-[#df7afe] transition-colors duration-300" />
+                        </div>
+                        <h4 className="text-2xl font-bold text-white mb-3 tracking-tight group-hover:text-[#df7afe] transition-colors duration-300">{item.title}</h4>
+                        <p className="text-zinc-400 text-sm leading-relaxed group-hover:text-zinc-300 transition-colors duration-300">{item.desc}</p>
+                     </div>
+                  </motion.div>
+               ))}
+            </div>
+         </div>
+      </section>
+
+      {/* Technology Section - REDESIGNED */}
+      <section className="py-32 relative z-10 overflow-hidden" id="technology">
+
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               className="text-center max-w-3xl mx-auto mb-20"
+            >
+               <h2 className="text-sm font-bold text-[#814ac8] uppercase tracking-widest mb-3">Technology</h2>
+               <h3 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
+                  Built for <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#df7afe] to-[#814ac8]">Hyperscale</span> Intelligence
+               </h3>
+               <p className="text-lg text-zinc-400">
+                  A modern stack designed for low-latency decisioning on billion-node graphs.
+               </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+               {/* Card 1: Hyperscale Engine (Large Left) */}
+               <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ scale: 1.01 }}
+                  className="md:col-span-7 bg-[#0d0d0d] border border-white/5 rounded-3xl p-8 relative overflow-hidden group"
+               >
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#814ac8]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10">
+                     <div className="w-12 h-12 rounded-xl bg-[#814ac8]/10 flex items-center justify-center mb-6">
+                        <Cpu className="w-6 h-6 text-[#df7afe]" />
+                     </div>
+                     <h4 className="text-2xl font-bold text-white mb-2">Graph Neural Engine</h4>
+                     <p className="text-zinc-400 mb-8 max-w-sm">
+                        Proprietary Rust-based runtime executing complex traversals in microseconds.
+                     </p>
+                     
+                     {/* Visual: Simulated Code/Terminal */}
+                     <div className="bg-[#151515] rounded-xl border border-white/5 p-4 font-mono text-xs text-zinc-300 shadow-2xl">
+                        <div className="flex gap-1.5 mb-3">
+                           <div className="w-2.5 h-2.5 rounded-full bg-red-500/20" />
+                           <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/20" />
+                           <div className="w-2.5 h-2.5 rounded-full bg-green-500/20" />
+                        </div>
+                        <div className="space-y-1">
+                           <p><span className="text-[#df7afe]">fn</span> <span className="text-zinc-300">detect_cycle</span>(graph: &Graph) -{'>'} Result {'{'}</p>
+                           <p className="pl-4 text-zinc-500">// efficient DFS with path pruning</p>
+                           <p className="pl-4"><span className="text-[#814ac8]">let</span> nodes = graph.scan_edges(Target::HighRisk);</p>
+                           <p className="pl-4"><span className="text-[#df7afe]">await</span> engine.process(nodes);</p>
+                           <p>{'}'}</p>
+                        </div>
+                     </div>
+                  </div>
+               </motion.div>
+
+               {/* Right Column Stack */}
+               <div className="md:col-span-5 flex flex-col gap-6 h-full">
+                  {/* Card 2: Real-time Ingestion */}
+                  <motion.div 
+                     initial={{ opacity: 0, x: 20 }}
+                     whileInView={{ opacity: 1, x: 0 }}
+                     viewport={{ once: true }}
+                     transition={{ delay: 0.1 }}
+                     whileHover={{ scale: 1.02 }}
+                     className="bg-[#0d0d0d] border border-white/5 rounded-3xl p-8 relative overflow-hidden group flex-1 flex flex-col justify-center"
+                  >
+                     <div className="absolute right-0 top-0 w-32 h-32 bg-[#df7afe]/10 rounded-full blur-[50px] pointer-events-none" />
+                     <div className="relative z-10">
+                        <div className="w-12 h-12 rounded-xl bg-[#df7afe]/10 flex items-center justify-center mb-4">
+                           <Zap className="w-6 h-6 text-[#df7afe]" />
+                        </div>
+                        <h4 className="text-xl font-bold text-white mb-2">Real-time Ingestion</h4>
+                        <p className="text-zinc-400 text-sm">
+                           Connect via gRPC, Kafka, or REST. <span className="text-white">100k+ events/sec</span> throughput.
+                        </p>
+                     </div>
+                  </motion.div>
+                  
+                  {/* Card 3: Security */}
+                  <motion.div 
+                     initial={{ opacity: 0, x: 20 }}
+                     whileInView={{ opacity: 1, x: 0 }}
+                     viewport={{ once: true }}
+                     transition={{ delay: 0.2 }}
+                     whileHover={{ scale: 1.02 }}
+                     className="bg-[#0d0d0d] border border-white/5 rounded-3xl p-8 relative overflow-hidden group flex-1 flex flex-col justify-center"
+                  >
+                     <div className="absolute right-0 top-0 w-32 h-32 bg-[#df7afe]/10 rounded-full blur-[50px] pointer-events-none" />
+                     <div className="relative z-10">
+                        <div className="w-12 h-12 rounded-xl bg-[#df7afe]/10 flex items-center justify-center mb-4">
+                           <Lock className="w-6 h-6 text-[#df7afe]" />
+                        </div>
+                        <h4 className="text-xl font-bold text-white mb-2">Enterprise Security</h4>
+                        <p className="text-zinc-400 text-sm">
+                           SOC2 Type II ready. End-to-end encryption and granular RBAC.
+                        </p>
+                     </div>
+                  </motion.div>
+               </div>
+            </div>
+
+            {/* Bottom Row: Integration Ticker */}
+            <motion.div 
+               initial={{ opacity: 0, y: 30 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ delay: 0.3 }}
+               className="mt-6 bg-[#0d0d0d] border border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-8 h-full"
+            >
+               <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#814ac8]/10 flex items-center justify-center">
+                     <Network className="w-6 h-6 text-[#df7afe]" />
+                  </div>
+                  <div>
+                     <h4 className="text-lg font-bold text-white">Seamless Integration</h4>
+                     <p className="text-zinc-400 text-sm">Works with your existing stack.</p>
+                  </div>
+               </div>
+               
+               <div className="flex gap-6 opacity-80 grayscale hover:grayscale-0 transition-all duration-500">
+                   <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                      <div className="w-12 h-12 rounded-xl border-2 border-white/10 flex items-center justify-center group-hover:border-white/30 transition-colors bg-black/40">
+                         <Cloud className="w-6 h-6 text-white stroke-[1.5]" />
+                      </div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider group-hover:text-zinc-300">AWS</span>
+                   </div>
+                   <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                      <div className="w-12 h-12 rounded-xl border-2 border-white/10 flex items-center justify-center group-hover:border-white/30 transition-colors bg-black/40">
+                         <Database className="w-6 h-6 text-white stroke-[1.5]" />
+                      </div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider group-hover:text-zinc-300">GCP</span>
+                   </div>
+                   <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                      <div className="w-12 h-12 rounded-xl border-2 border-white/10 flex items-center justify-center group-hover:border-white/30 transition-colors bg-black/40">
+                         <Server className="w-6 h-6 text-white stroke-[1.5]" />
+                      </div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider group-hover:text-zinc-300">Azure</span>
+                   </div>
+                   <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                      <div className="w-12 h-12 rounded-xl border-2 border-white/10 flex items-center justify-center group-hover:border-white/30 transition-colors bg-black/40">
+                         <Layers className="w-6 h-6 text-white stroke-[1.5]" />
+                      </div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider group-hover:text-zinc-300">Snowflake</span>
+                   </div>
+                   <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                      <div className="w-12 h-12 rounded-xl border-2 border-white/10 flex items-center justify-center group-hover:border-white/30 transition-colors bg-black/40">
+                         <Box className="w-6 h-6 text-white stroke-[1.5]" />
+                      </div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider group-hover:text-zinc-300">Databricks</span>
+                   </div>
+               </div>
+            </motion.div>
+         </div>
+      </section>
+
+      </div>
+
+       {/* Trusted By Section - REPLACEMENT */}
+       <section className="py-10 border-y border-white/5 bg-[#0a0a0a]/50 backdrop-blur-sm relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <span className="text-sm font-bold text-zinc-500 uppercase tracking-widest whitespace-nowrap">Trusted by security teams at</span>
+            
+            <div className="flex flex-wrap justify-center md:justify-end gap-8 md:gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+               {['Revolut', 'Monzo', 'Checkout.com', 'Fireblocks', 'Chainalysis'].map((brand, i) => (
+                  <span key={i} className="text-lg font-bold text-white/40 hover:text-white transition-colors cursor-default">{brand}</span>
+               ))}
             </div>
         </div>
        </section>
@@ -482,9 +740,16 @@ function FeatureCard({ icon, title, description, highlight = false }) {
 
 function StatItem({ value, label }) {
     return (
-        <div>
-            <div className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">{value}</div>
-            <div className="text-sm font-medium text-[#814ac8] uppercase tracking-widest">{label}</div>
-        </div>
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-col items-center justify-center p-4"
+        >
+            <div className="text-5xl md:text-6xl font-bold text-white mb-2 tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
+                {value}
+            </div>
+            <div className="text-sm font-bold text-[#814ac8] uppercase tracking-widest">{label}</div>
+        </motion.div>
     )
 }
