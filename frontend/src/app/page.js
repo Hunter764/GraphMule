@@ -6,7 +6,7 @@ import GraphVisualizer from '../components/GraphVisualizer';
 import ResultsDashboard from '../components/ResultsDashboard';
 import LandingPage from '../components/LandingPage';
 import Background3D from '../components/Background3D'; // New 3D Background
-import { UploadCloud, Play, AlertTriangle, CheckCircle, ArrowLeft, Share2, X, Activity, ShieldAlert, Network } from 'lucide-react';
+import { UploadCloud, Play, AlertTriangle, CheckCircle, ArrowLeft, Share2, X, Activity, ShieldAlert, Network, FileJson, Download } from 'lucide-react';
 
 export default function Home() {
   const [view, setView] = useState('landing'); // 'landing' | 'app'
@@ -264,29 +264,71 @@ export default function Home() {
 
         {/* Results Section */}
         {results && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
                 
-                {/* Visualizer & Side Panel (Takes up 2 cols on large screens) */}
-                <div className="lg:col-span-2 space-y-4 relative flex flex-col">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-bold flex items-center gap-2 text-white">
-                            <div className="w-2 h-6 bg-[#df7afe] rounded-full shadow-[0_0_8px_#df7afe]"></div>
+                {/* 1. Header Row */}
+                <div className="flex justify-between items-end w-full pb-2 border-b border-white/5">
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-3">
+                            <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-[#814ac8] to-[#df7afe] shadow-[0_0_12px_rgba(223,122,254,0.5)]"></div>
+                            <h2 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/50">
+                                Risk Assessment
+                            </h2>
+                        </div>
+                        <p className="text-zinc-500 text-sm ml-4.5 font-medium">Comprehensive network analysis and anomaly detection</p>
+                    </div>
+
+                    <button 
+                        onClick={handleDownloadJSON}
+                        className="group relative flex items-center justify-center gap-2.5 px-6 py-2.5 bg-[#0a0a0a] hover:bg-[#121212] text-zinc-300 hover:text-white rounded-xl border border-white/10 hover:border-[#df7afe]/40 transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] hover:shadow-[0_0_25px_-5px_rgba(223,122,254,0.25)] hover:-translate-y-0.5 overflow-hidden"
+                    >
+                        {/* Subtle inner highlight */}
+                        <div className="absolute inset-0 w-full h-full bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <FileJson className="w-4 h-4 text-[#df7afe] group-hover:scale-110 transition-transform duration-300 relative z-10" />
+                        <span className="font-semibold text-sm tracking-wide relative z-10">Export Report</span>
+                        <Download className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:-translate-y-0.5 transition-all duration-300 relative z-10" />
+                    </button>
+                </div>
+
+                {/* 2. Summary Cards Row */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                    {[
+                        { label: 'Analyzed', value: results.summary.total_accounts_analyzed.toLocaleString(), color: 'zinc', highlight: '' },
+                        { label: 'Fraud Rings', value: results.summary.fraud_rings_detected, color: 'red', highlight: 'text-red-400 border-red-500/20 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.1)]' },
+                        { label: 'High Risk', value: results.summary.suspicious_accounts_flagged, color: 'orange', highlight: 'text-orange-400 border-orange-500/20 shadow-[0_4px_20px_-4px_rgba(249,115,22,0.1)]' },
+                        { label: 'Time', value: `${results.summary.processing_time_seconds}s`, color: 'teal', highlight: 'text-teal-400 border-teal-500/20 shadow-[0_4px_20px_-4px_rgba(45,212,191,0.1)]' }
+                    ].map((stat, i) => (
+                        <div key={i} className={`p-4 min-h-[90px] rounded-2xl border border-[#27272a] bg-[#13141b] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col justify-center items-center text-center ${stat.highlight || ''}`}>
+                            <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-widest mb-1">{stat.label}</p>
+                            <p className={`text-2xl font-bold ${stat.color === 'zinc' ? 'text-white' : ''}`}>{stat.value}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 3. Network Visualization */}
+                <div className="w-full relative flex flex-col pt-4">
+                    <div className="flex justify-between items-center mb-6 px-1">
+                        <h2 className="text-2xl font-extrabold tracking-tight flex items-center gap-3 bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/60">
+                            <div className="w-1.5 h-7 rounded-full bg-gradient-to-b from-[#df7afe] to-[#814ac8] shadow-[0_0_10px_rgba(223,122,254,0.4)]"></div>
                             Network Visualization
                         </h2>
                         {selectedRingId && (
                             <button 
                                 onClick={() => setSelectedRingId(null)}
-                                className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors border border-zinc-700"
+                                className="text-xs bg-[#13141b] hover:bg-[#1f1f25] text-zinc-300 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition-all border border-[#27272a] hover:border-[#3f3f46] shadow-sm"
                             >
-                                <X className="w-3 h-3" /> Clear Ring Selection
+                                <X className="w-3.5 h-3.5" /> Clear Ring Selection
                             </button>
                         )}
                     </div>
                     
-                    <div className="bg-[#0a0a0a]/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative flex-1 min-h-[500px] lg:min-h-[600px] flex">
-                        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px] pointer-events-none" />
-                        
-                        <div className="flex-1 relative">
+                    {/* Elevated Framing Container */}
+                    <div className="p-1.5 bg-[#13141b] border border-[#27272a] rounded-[2rem] shadow-[0_16px_40px_-16px_rgba(0,0,0,0.8)] relative w-full h-[500px] lg:h-[650px] flex shrink-0 group transition-all duration-500 hover:shadow-[0_24px_50px_-16px_rgba(223,122,254,0.15)]">
+                        {/* Inner Visualizer Area */}
+                        <div className="bg-[#050505] rounded-3xl overflow-hidden flex-1 h-full w-full relative">
+                            <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px] pointer-events-none" />
+                            
+                            <div className="flex-1 h-full w-full relative">
                             <GraphVisualizer 
                                 data={graphData} 
                                 suspiciousAccounts={results.suspicious_accounts} 
@@ -300,7 +342,7 @@ export default function Home() {
                         <div className={`absolute top-0 right-0 bottom-0 w-80 bg-[#121212]/95 backdrop-blur-3xl border-l border-white/10 shadow-[-10px_0_30px_rgba(0,0,0,0.5)] transform transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] z-20 flex flex-col ${selectedNode ? 'translate-x-0' : 'translate-x-full'}`}>
                             {selectedNode && (
                                 <>
-                                    <div className="p-5 border-b border-white/10 flex justify-between items-start bg-gradient-to-b from-white/[0.05] to-transparent">
+                                    <div className="p-5 border-b border-white/10 flex justify-between items-start bg-gradient-to-b from-white/[0.05] to-transparent shrink-0">
                                         <div>
                                             <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
                                                 <Activity className="w-5 h-5 text-[#df7afe]" />
@@ -319,7 +361,7 @@ export default function Home() {
                                     <div className="p-5 flex-1 overflow-y-auto space-y-6 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
                                         
                                         {/* Score Ring */}
-                                        <div className="flex flex-col items-center justify-center p-6 bg-black/20 rounded-2xl border border-white/5">
+                                        <div className="flex flex-col items-center justify-center p-6 bg-black/20 rounded-2xl border border-white/5 shrink-0">
                                             <div className="relative w-24 h-24 mb-3">
                                                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                                                     {/* Background Circle */}
@@ -343,7 +385,7 @@ export default function Home() {
                                         </div>
 
                                         {/* Risk Level Badge */}
-                                        <div className="flex justify-center">
+                                        <div className="flex justify-center shrink-0">
                                             {selectedNode.suspicion_score > 80 ? (
                                                 <span className="px-4 py-1.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-sm font-semibold flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                                                     <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Critical Risk
@@ -360,9 +402,9 @@ export default function Home() {
                                         </div>
 
                                         {/* Details List */}
-                                        <div className="space-y-4 pt-4 border-t border-white/5">
+                                        <div className="space-y-4 pt-4 border-t border-white/5 pb-6">
                                             {selectedNode.ring_id && selectedNode.ring_id !== "N/A" && (
-                                                <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-4">
+                                                <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-4 shrink-0">
                                                     <p className="text-xs text-zinc-500 mb-1 flex items-center gap-1.5">
                                                         <Network className="w-3.5 h-3.5" /> Associated Ring
                                                     </p>
@@ -378,7 +420,7 @@ export default function Home() {
                                                 </div>
                                             )}
                                             
-                                            <div>
+                                            <div className="shrink-0">
                                                 <p className="text-xs text-zinc-500 mb-2">Detected Patterns</p>
                                                 {selectedNode.detected_patterns && selectedNode.detected_patterns.length > 0 ? (
                                                     <div className="flex flex-wrap gap-2">
@@ -399,13 +441,10 @@ export default function Home() {
                         </div>
                     </div>
                 </div>
+                </div>
 
-                {/* Dashboard / Stats (Takes up 1 col) */}
-                <div className="space-y-4">
-                    <h2 className="text-xl font-bold flex items-center gap-2 text-white">
-                        <div className="w-2 h-6 bg-[#814ac8] rounded-full shadow-[0_0_8px_#814ac8]"></div>
-                        Risk Assessment
-                    </h2>
+                {/* 4. Tables Section */}
+                <div className="w-full">
                     <ResultsDashboard 
                         summary={results.summary}
                         suspiciousAccounts={results.suspicious_accounts}
