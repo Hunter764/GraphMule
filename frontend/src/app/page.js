@@ -5,7 +5,8 @@ import dynamic from 'next/dynamic';
 import GraphVisualizer from '../components/GraphVisualizer';
 import ResultsDashboard from '../components/ResultsDashboard';
 import LandingPage from '../components/LandingPage';
-import { UploadCloud, Play, AlertTriangle, CheckCircle, ArrowLeft } from 'lucide-react';
+import Background3D from '../components/Background3D'; // New 3D Background
+import { UploadCloud, Play, AlertTriangle, CheckCircle, ArrowLeft, Share2 } from 'lucide-react';
 
 export default function Home() {
   const [view, setView] = useState('landing'); // 'landing' | 'app'
@@ -119,107 +120,153 @@ export default function Home() {
 
   // Render Main App
   return (
-    <main className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <main className="min-h-screen relative text-white font-sans selection:bg-[#814ac8]/30 selection:text-[#df7afe] overflow-hidden">
+      
+      {/* 3D Background */}
+      <Background3D />
+      
+      <div className="max-w-7xl mx-auto p-6 md:p-8 relative z-10 space-y-8">
         
         {/* Header */}
-        <header className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-6">
+        <header className="flex justify-between items-center pb-6 border-b border-white/10">
           <div className="flex items-center gap-4">
              <button 
                 onClick={() => setView('landing')}
-                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full transition-colors"
+                className="group p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl transition-all duration-300 backdrop-blur-md"
                 title="Back to Home"
              >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" />
              </button>
-             <div>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-                    GraphMule
-                </h1>
-                <p className="text-zinc-500 dark:text-zinc-400">Financial Crime Detection Engine</p>
+             <div className="flex items-center gap-3">
+                 <div className="relative w-10 h-10 flex items-center justify-center hidden md:flex">
+                     <div className="absolute inset-0 bg-gradient-to-tr from-[#814ac8] to-[#df7afe] rounded-xl blur opacity-20" />
+                     <div className="relative w-full h-full bg-[#0d0d0d]/80 border border-white/10 rounded-xl flex items-center justify-center">
+                        <Share2 className="w-5 h-5 text-[#df7afe]" />
+                     </div>
+                 </div>
+                 <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-white">
+                        GraphMule <span className="text-[#df7afe] text-lg font-normal opacity-70">App</span>
+                    </h1>
+                 </div>
              </div>
           </div>
           <div className="flex gap-4">
-             {/* RIFT Hackathon Badge or similar */}
-             <div className="px-3 py-1 bg-zinc-100 dark:bg-zinc-900 rounded-full text-xs font-mono border border-zinc-200 dark:border-zinc-800">
+             {/* RIFT Hackathon Badge */}
+             <div className="px-3 py-1 bg-[#814ac8]/10 border border-[#814ac8]/20 text-[#df7afe] rounded-full text-xs font-mono font-semibold tracking-wider backdrop-blur-md">
                 RIFT 2026
              </div>
           </div>
         </header>
 
-        {/* Upload Section */}
-        <section className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-8 shadow-sm">
-           <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
-              <div className="flex-1 w-full">
-                  <label 
-                    htmlFor="file-upload" 
-                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors
-                        ${file ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-zinc-300 dark:border-zinc-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10'}
+        {/* Upload Container */}
+        <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#814ac8]/20 to-transparent rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-1000" />
+            <section className="relative bg-[#0a0a0a]/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl overflow-hidden transition-all duration-500 hover:border-[#814ac8]/30">
+               
+               {/* Inner Highlight */}
+               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+               <div className="text-center mb-10">
+                   <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 mb-3">
+                       Upload Transaction Data
+                   </h2>
+                   <p className="text-zinc-400 max-w-lg mx-auto">
+                       Upload your transaction CSV to detect cycles, smurfing, and money laundering patterns in real-time.
+                   </p>
+               </div>
+
+               <div className="flex flex-col md:flex-row gap-6 items-stretch justify-center max-w-4xl mx-auto">
+                  <div className="flex-1 w-full">
+                      <label 
+                        htmlFor="file-upload" 
+                        className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 group/drop
+                            ${file 
+                                ? 'border-[#df7afe]/50 bg-[#df7afe]/5' 
+                                : 'border-zinc-700 hover:border-[#814ac8]/50 hover:bg-[#814ac8]/5 bg-black/20'}
+                        `}
+                      >
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              {file ? (
+                                  <>
+                                    <div className="w-12 h-12 bg-[#df7afe]/10 rounded-full flex items-center justify-center mb-3 text-[#df7afe]">
+                                        <CheckCircle className="w-6 h-6" />
+                                    </div>
+                                    <p className="text-white font-medium">{file.name}</p>
+                                    <p className="text-xs text-[#df7afe] mt-1">Ready for analysis</p>
+                                  </>
+                              ) : (
+                                  <>
+                                    <div className="w-12 h-12 bg-zinc-800/50 rounded-full flex items-center justify-center mb-3 text-zinc-400 group-hover/drop:text-[#df7afe] group-hover/drop:scale-110 transition-all">
+                                        <UploadCloud className="w-6 h-6" />
+                                    </div>
+                                    <p className="text-sm text-zinc-400 font-medium group-hover/drop:text-zinc-200">
+                                        Click to upload CSV
+                                    </p>
+                                    <p className="text-xs text-zinc-500 mt-1">or drag and drop</p>
+                                  </>
+                              )}
+                          </div>
+                          <input id="file-upload" type="file" className="hidden" accept=".csv" onChange={handleFileChange} />
+                      </label>
+                  </div>
+                  
+                  <button 
+                    onClick={handleAnalyze}
+                    disabled={!file || loading}
+                    className={`flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-lg shadow-lg transition-all duration-300 min-w-[200px]
+                        ${!file || loading 
+                            ? 'bg-zinc-800/50 text-zinc-600 cursor-not-allowed border border-white/5' 
+                            : 'bg-[#814ac8] hover:bg-[#6d28d9] text-white shadow-[#814ac8]/25 hover:shadow-[#814ac8]/40 hover:-translate-y-1 border border-[#814ac8]'}
                     `}
                   >
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          {file ? (
-                              <>
-                                <CheckCircle className="w-8 h-8 text-green-500 mb-2" />
-                                <p className="text-sm text-green-600 font-medium">{file.name}</p>
-                              </>
-                          ) : (
-                              <>
-                                <UploadCloud className="w-8 h-8 text-zinc-400 mb-2" />
-                                <p className="text-sm text-zinc-500"><span className="font-semibold">Click to upload</span> or drag and drop CSV</p>
-                              </>
-                          )}
-                      </div>
-                      <input id="file-upload" type="file" className="hidden" accept=".csv" onChange={handleFileChange} />
-                  </label>
-              </div>
-              
-              <button 
-                onClick={handleAnalyze}
-                disabled={!file || loading}
-                className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all
-                    ${!file || loading 
-                        ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed' 
-                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5'}
-                `}
-              >
-                 {loading ? (
-                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                 ) : (
-                     <Play className="w-5 h-5" fill="currentColor" />
-                 )}
-                 {loading ? 'Processing...' : 'Analyze Network'}
-              </button>
-           </div>
-           {error && (
-               <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg flex items-center gap-2">
-                   <AlertTriangle className="w-5 h-5" />
-                   {error}
+                     {loading ? (
+                         <div className="flex items-center gap-2">
+                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                             <span>Scanning...</span>
+                         </div>
+                     ) : (
+                         <>
+                             <Play className="w-5 h-5 fill-white" />
+                             Analyze 
+                         </>
+                     )}
+                  </button>
                </div>
-           )}
-        </section>
+               
+               {error && (
+                   <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 text-red-200 rounded-xl flex items-center gap-3 max-w-4xl mx-auto backdrop-blur-md">
+                       <AlertTriangle className="w-5 h-5 text-red-400" />
+                       <span className="text-sm">{error}</span>
+                   </div>
+               )}
+            </section>
+        </div>
 
         {/* Results Section */}
         {results && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
                 
                 {/* Visualizer (Takes up 2 cols on large screens) */}
                 <div className="lg:col-span-2 space-y-4">
-                    <h2 className="text-xl font-bold flex items-center gap-2">
-                        <div className="w-2 h-6 bg-blue-500 rounded-full"></div>
+                    <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                        <div className="w-2 h-6 bg-[#df7afe] rounded-full shadow-[0_0_8px_#df7afe]"></div>
                         Network Visualization
                     </h2>
-                    <GraphVisualizer 
-                        data={graphData} 
-                        suspiciousAccounts={results.suspicious_accounts} 
-                        fraudRings={results.fraud_rings} 
-                    />
+                    <div className="bg-[#0a0a0a]/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden h-[600px] shadow-2xl relative">
+                        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px] pointer-events-none" />
+                        <GraphVisualizer 
+                            data={graphData} 
+                            suspiciousAccounts={results.suspicious_accounts} 
+                            fraudRings={results.fraud_rings} 
+                        />
+                    </div>
                 </div>
 
                 {/* Dashboard / Stats (Takes up 1 col) */}
                 <div className="space-y-4">
-                    <h2 className="text-xl font-bold flex items-center gap-2">
-                        <div className="w-2 h-6 bg-orange-500 rounded-full"></div>
+                    <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                        <div className="w-2 h-6 bg-[#814ac8] rounded-full shadow-[0_0_8px_#814ac8]"></div>
                         Risk Assessment
                     </h2>
                     <ResultsDashboard 
