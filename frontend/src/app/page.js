@@ -6,7 +6,7 @@ import GraphVisualizer from '../components/GraphVisualizer';
 import ResultsDashboard from '../components/ResultsDashboard';
 import LandingPage from '../components/LandingPage';
 import Background3D from '../components/Background3D'; // New 3D Background
-import { UploadCloud, Play, AlertTriangle, CheckCircle, ArrowLeft, Share2, X, Activity, ShieldAlert, Network, FileJson, Download } from 'lucide-react';
+import { UploadCloud, Play, AlertTriangle, CheckCircle, ArrowLeft, Share2, X, Activity, ShieldAlert, Network, FileJson, Download, Info } from 'lucide-react';
 
 export default function Home() {
   const [view, setView] = useState('landing'); // 'landing' | 'app'
@@ -19,6 +19,9 @@ export default function Home() {
   // Dashboard Interaction State
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedRingId, setSelectedRingId] = useState(null);
+  
+  // Modal State
+  const [showCSVModal, setShowCSVModal] = useState(false);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -187,9 +190,15 @@ export default function Home() {
                        <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 mb-3">
                            Upload Transaction Data
                        </h2>
-                       <p className="text-zinc-400 max-w-lg mx-auto">
+                       <p className="text-zinc-400 max-w-lg mx-auto mb-5">
                            Upload your transaction CSV to detect cycles, smurfing, and money laundering patterns in real-time.
                        </p>
+                       <button 
+                           onClick={() => setShowCSVModal(true)}
+                           className="inline-flex items-center gap-2 text-xs font-semibold text-zinc-500 hover:text-[#df7afe] transition-all duration-300 focus:outline-none bg-black/40 px-4 py-1.5 rounded-full border border-white/5 hover:border-[#df7afe]/30 hover:bg-[#df7afe]/5"
+                       >
+                           <Info className="w-3.5 h-3.5" /> View CSV Format
+                       </button>
                    </div>
                )}
 
@@ -457,6 +466,72 @@ export default function Home() {
             </div>
         )}
       </div>
+
+      {/* CSV Format Modal */}
+      {showCSVModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#050505]/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+           <div className="bg-[#13141b] border border-[#27272a] rounded-[1.5rem] w-full max-w-3xl overflow-hidden shadow-[0_24px_50px_-12px_rgba(0,0,0,0.8)] relative animate-in zoom-in-95 duration-300">
+              
+              <div className="p-5 md:p-6 border-b border-[#27272a] flex justify-between items-center bg-gradient-to-b from-white/[0.02] to-transparent">
+                 <h3 className="text-xl font-extrabold tracking-tight flex items-center gap-3 bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/60">
+                     <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-[#df7afe] to-[#814ac8] shadow-[0_0_8px_rgba(223,122,254,0.4)]"></div>
+                     CSV Input Specification
+                 </h3>
+                 <button 
+                     onClick={() => setShowCSVModal(false)}
+                     className="p-2 text-zinc-400 hover:text-white bg-black/20 hover:bg-black/40 rounded-full border border-white/5 hover:border-white/10 transition-all"
+                 >
+                     <X className="w-5 h-5" />
+                 </button>
+              </div>
+
+              <div className="p-6">
+                 <p className="text-zinc-300 mb-6 text-sm">
+                     Your web application MUST accept CSV file upload with the following exact structure:
+                 </p>
+                 
+                 <div className="rounded-xl overflow-hidden border border-[#27272a] bg-[#0a0a0a]">
+                     <div className="overflow-x-auto">
+                         <table className="w-full text-left text-sm whitespace-nowrap">
+                             <thead className="bg-[#18181f] text-zinc-400 font-semibold uppercase text-xs tracking-wider border-b border-[#27272a]">
+                                 <tr>
+                                     <th className="px-5 py-4">Column Name</th>
+                                     <th className="px-5 py-4">Data Type</th>
+                                     <th className="px-5 py-4 w-full">Description</th>
+                                 </tr>
+                             </thead>
+                             <tbody className="divide-y divide-white/5 text-zinc-300">
+                                 {[
+                                     { name: 'transaction_id', type: 'String', desc: 'Unique transaction identifier' },
+                                     { name: 'sender_id', type: 'String', desc: 'Account ID of sender (becomes a node)' },
+                                     { name: 'receiver_id', type: 'String', desc: 'Account ID of receiver (becomes a node)' },
+                                     { name: 'amount', type: 'Float', desc: 'Transaction amount in currency units' },
+                                     { name: 'timestamp', type: 'DateTime', desc: 'Format: YYYY-MM-DD HH:MM:SS' },
+                                 ].map((row, i) => (
+                                     <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                                         <td className="px-5 py-4 font-mono text-[#df7afe] text-[13px] font-medium">{row.name}</td>
+                                         <td className="px-5 py-4 font-mono text-zinc-400 text-[12px]">{row.type}</td>
+                                         <td className="px-5 py-4 text-zinc-300">{row.desc}</td>
+                                     </tr>
+                                 ))}
+                             </tbody>
+                         </table>
+                     </div>
+                 </div>
+              </div>
+
+              <div className="p-5 border-t border-[#27272a] bg-black/20 flex justify-end">
+                  <button 
+                     onClick={() => setShowCSVModal(false)}
+                     className="px-6 py-2 bg-white/10 hover:bg-white/15 text-white font-semibold rounded-xl transition-colors border border-white/10"
+                  >
+                     Got it
+                  </button>
+              </div>
+           </div>
+        </div>
+      )}
+
     </main>
   );
 }
