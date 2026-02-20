@@ -5,11 +5,10 @@ import pandas as pd
 import networkx as nx
 import io
 import time
-from algorithms import detect_cycles, detect_smurfing, detect_shell_accounts
+from algorithms import detect_cycles, detect_smurfing, detect_shell_accounts, detect_bursts, detect_degree_anomalies
 
-app = FastAPI()
+app = FastAPI(title="GraphMule Backend")
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,10 +16,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.get("/")
-async def root():
-    return {"message": "GraphMule API is running"}
 
 @app.post("/analyze")
 async def analyze_transactions(file: UploadFile = File(...)):
@@ -32,106 +27,90 @@ async def analyze_transactions(file: UploadFile = File(...)):
     try:
         content = await file.read()
         df = pd.read_csv(io.BytesIO(content))
-
-        # CRITICAL ADDITION: Convert timestamps to datetime for the 72-hour check
         df['timestamp'] = pd.to_datetime(df['timestamp'])
 
-        required_columns = {'transaction_id', 'sender_id', 'receiver_id', 'amount', 'timestamp'}
-        if not required_columns.issubset(df.columns):
-            return JSONResponse(status_code=400, content={"error": f"Missing columns."})
+        # Multi-edge aggregation to prevent data loss in DiGraph
+        agg_df = df.groupby(['sender_id', 'receiver_id']).agg({
+            'amount': 'sum',
+            'timestamp': 'max'
+        }).reset_index()
 
-        # Build Graph
-        G = nx.from_pandas_edgelist(
-            df,
-            source='sender_id',
-            target='receiver_id',
-            edge_attr=['amount', 'timestamp'],
-            create_using=nx.DiGraph()
-        )
+        G = nx.from_pandas_edgelist(agg_df, source='sender_id', target='receiver_id', edge_attr=['amount', 'timestamp'], create_using=nx.DiGraph())
 
-        # Execute Algorithms
+        # Execute all algorithms
         cycles = detect_cycles(G)
         smurfing_data = detect_smurfing(df)
         shell_rings_data = detect_shell_accounts(G, df)
+        burst_accounts = detect_bursts(df)
+        anomaly_hubs = detect_degree_anomalies(G)
 
         fraud_rings = []
         suspicious_accounts_dict = {}
         ring_counter = 1
 
-        # Helper function to track node scores without creating duplicates
-        def flag_account(acc_id, score, pattern, ring_id):
+        # CHANGES 6 & 7: Cumulative Risk Scoring Function
+        def flag_account(acc_id, score_to_add, pattern, ring_id="N/A"):
+            acc_id = str(acc_id)
             if acc_id not in suspicious_accounts_dict:
                 suspicious_accounts_dict[acc_id] = {
-                    "account_id": str(acc_id),
+                    "account_id": acc_id,
                     "suspicion_score": 0.0,
                     "detected_patterns": set(),
                     "ring_id": ring_id
                 }
-            current = suspicious_accounts_dict[acc_id]["suspicion_score"]
-            suspicious_accounts_dict[acc_id]["suspicion_score"] = max(current, score)
+
+            # Additive scoring: The more patterns an account appears in, the higher the risk
+            current_score = suspicious_accounts_dict[acc_id]["suspicion_score"]
+            suspicious_accounts_dict[acc_id]["suspicion_score"] = min(99.0, current_score + score_to_add)
+
             suspicious_accounts_dict[acc_id]["detected_patterns"].add(pattern)
 
-        # 1. Process Cycles
+            if ring_id != "N/A" and suspicious_accounts_dict[acc_id]["ring_id"] == "N/A":
+                suspicious_accounts_dict[acc_id]["ring_id"] = ring_id
+
+        # 1. Cycles (Base Risk: +45)
         for cycle in cycles:
             ring_id = f"RING_{ring_counter:03d}"
-            for node in cycle:
-                flag_account(node, 95.0, f"cycle_length_{len(cycle)}", ring_id)
-            fraud_rings.append({
-                "ring_id": ring_id,
-                "member_accounts": cycle,
-                "pattern_type": "cycle",
-                "risk_score": 95.0
-            })
+            for node in cycle: flag_account(node, 45.0, f"cycle_length_{len(cycle)}", ring_id)
+            fraud_rings.append({"ring_id": ring_id, "member_accounts": cycle, "pattern_type": "cycle", "risk_score": 95.0})
             ring_counter += 1
 
-        # 2. Process Fan-In Smurfing
+        # 2. Fan-In Smurfing (Base Risk: +35)
         for ring in smurfing_data["fan_in"]:
             ring_id = f"RING_{ring_counter:03d}"
-            for node in ring:
-                flag_account(node, 88.5, "fan_in_smurfing", ring_id)
-            fraud_rings.append({
-                "ring_id": ring_id,
-                "member_accounts": ring,
-                "pattern_type": "fan_in_smurfing",
-                "risk_score": 88.5
-            })
+            for node in ring: flag_account(node, 35.0, "fan_in_smurfing", ring_id)
+            fraud_rings.append({"ring_id": ring_id, "member_accounts": ring, "pattern_type": "fan_in_smurfing", "risk_score": 88.5})
             ring_counter += 1
 
-        # 3. Process Fan-Out Smurfing
+        # 3. Fan-Out Smurfing (Base Risk: +35)
         for ring in smurfing_data["fan_out"]:
             ring_id = f"RING_{ring_counter:03d}"
-            for node in ring:
-                flag_account(node, 88.5, "fan_out_smurfing", ring_id)
-            fraud_rings.append({
-                "ring_id": ring_id,
-                "member_accounts": ring,
-                "pattern_type": "fan_out_smurfing",
-                "risk_score": 88.5
-            })
+            for node in ring: flag_account(node, 35.0, "fan_out_smurfing", ring_id)
+            fraud_rings.append({"ring_id": ring_id, "member_accounts": ring, "pattern_type": "fan_out_smurfing", "risk_score": 88.5})
             ring_counter += 1
 
-        # 4. Process Shell Networks
+        # 4. Layered Shells (Base Risk: +40)
         for ring in shell_rings_data:
             ring_id = f"RING_{ring_counter:03d}"
-            for node in ring:
-                flag_account(node, 92.0, "layered_shell", ring_id)
-            fraud_rings.append({
-                "ring_id": ring_id,
-                "member_accounts": ring,
-                "pattern_type": "layered_shell",
-                "risk_score": 92.0
-            })
+            for node in ring: flag_account(node, 40.0, "layered_shell", ring_id)
+            fraud_rings.append({"ring_id": ring_id, "member_accounts": ring, "pattern_type": "layered_shell", "risk_score": 92.0})
             ring_counter += 1
 
-        # Finalize Suspicious Accounts Output
+        # 5. Velocity Bursts (Base Risk: +20)
+        for node in burst_accounts:
+            flag_account(node, 20.0, "high_velocity_burst")
+
+        # 6. Degree Anomalies (Base Risk: +25)
+        for node in anomaly_hubs:
+            flag_account(node, 25.0, "degree_anomaly_hub")
+
+        # Final formatting
         suspicious_accounts = []
         for v in suspicious_accounts_dict.values():
             v["detected_patterns"] = list(v["detected_patterns"])
             suspicious_accounts.append(v)
-            
-        suspicious_accounts.sort(key=lambda x: x['suspicion_score'], reverse=True)
 
-        processing_time = round(time.time() - start_time, 3)
+        suspicious_accounts.sort(key=lambda x: x['suspicion_score'], reverse=True)
 
         response_data = {
             "suspicious_accounts": suspicious_accounts,
@@ -140,10 +119,9 @@ async def analyze_transactions(file: UploadFile = File(...)):
                 "total_accounts_analyzed": len(G.nodes()),
                 "suspicious_accounts_flagged": len(suspicious_accounts),
                 "fraud_rings_detected": len(fraud_rings),
-                "processing_time_seconds": processing_time
+                "processing_time_seconds": round(time.time() - start_time, 3)
             }
         }
-
         return JSONResponse(content=response_data)
 
     except Exception as e:
