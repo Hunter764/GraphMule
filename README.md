@@ -2,6 +2,10 @@
 
 > **RIFT 2026 Hackathon Finalist Project**
 
+
+https://github.com/user-attachments/assets/cc2318ba-a073-4c6e-b0cd-54cdf14e27c4
+
+
 GraphMule is a next-generation, graph-based financial crime detection engine designed to identify money muling networks, smurfing patterns, and shell accounts using advanced network analysis and beautiful, high-performance data visualizations.
 
 ---
