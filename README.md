@@ -93,24 +93,7 @@ npm run dev
 ```
 *The Web UI is now live on `http://localhost:3000`*
 
----
 
-## 🌐 Production Deployment Guide
-
-GraphMule is completely production-ready and configured for cloud platforms. 
-
-### Deploying the Backend to Render
-1. Create a **Web Service** on [Render.com](https://render.com).
-2. Connect this repository and set the Root Directory to `backend`.
-3. Set the Build Command to `pip install -r requirements.txt`.
-4. Set the Start Command to `uvicorn main:app --host 0.0.0.0 --port 10000`.
-5. Once deployed, note your Render URL (e.g., `https://graphmule.onrender.com`).
-
-### Deploying the Frontend to Vercel
-1. In `frontend/src/app/page.js`, locate the `handleAnalyze` function and update the `fetch` URL from `localhost` to your live Render Backend URL. (Commit this change).
-2. Create a new **Project** on [Vercel](https://vercel.com) and import this repository.
-3. Edit the **Root Directory** setting to explicitly select the `frontend` folder.
-4. Click Deploy! Vercel will automatically run `npm run build` using the updated lockfiles and generate your live dashboard URL.
 
 ---
 *Built with precision for the RIFT 2026 Hackathon.*
