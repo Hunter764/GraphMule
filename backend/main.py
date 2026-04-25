@@ -5,7 +5,7 @@ import pandas as pd
 import networkx as nx
 import io
 import time
-from algorithms import detect_cycles, detect_smurfing, detect_shell_accounts, detect_bursts, detect_degree_anomalies
+from algorithms import detect_cycles, detect_smurfing, detect_shell_accounts, detect_bursts, detect_ml_anomalies
 
 app = FastAPI(title="GraphMule Backend")
 
@@ -42,7 +42,7 @@ async def analyze_transactions(file: UploadFile = File(...)):
         smurfing_data = detect_smurfing(df)
         shell_rings_data = detect_shell_accounts(G, df)
         burst_accounts = detect_bursts(df)
-        anomaly_hubs = detect_degree_anomalies(G)
+        ml_anomalies = detect_ml_anomalies(df, G)
 
         fraud_rings = []
         suspicious_accounts_dict = {}
@@ -100,9 +100,9 @@ async def analyze_transactions(file: UploadFile = File(...)):
         for node in burst_accounts:
             flag_account(node, 20.0, "high_velocity_burst")
 
-        # 6. Degree Anomalies (Base Risk: +25)
-        for node in anomaly_hubs:
-            flag_account(node, 25.0, "degree_anomaly_hub")
+        # 6. ML Isolation Forest Anomalies (Base Risk: +30)
+        for node in ml_anomalies:
+            flag_account(node, 30.0, "isolation_forest_anomaly")
 
         # Final formatting
         suspicious_accounts = []

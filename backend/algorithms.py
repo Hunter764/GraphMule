@@ -1,7 +1,8 @@
 import networkx as nx
 import pandas as pd
+import numpy as np
+from sklearn.ensemble import IsolationForest
 from datetime import timedelta
-
 def deduplicate_rings(rings):
     seen = set()
     unique_rings = []
@@ -109,16 +110,38 @@ def detect_bursts(df: pd.DataFrame):
                 break
     return list(burst_accounts)
 
-def detect_degree_anomalies(G: nx.DiGraph):
+# TUNED FOR DEMO: Machine Learning based anomaly detection
+def detect_ml_anomalies(df: pd.DataFrame, G: nx.DiGraph):
     if len(G.nodes) == 0: return []
     
-    avg_in_degree = sum(dict(G.in_degree()).values()) / len(G.nodes)
-    anomaly_accounts = []
+    in_degrees = dict(G.in_degree())
+    out_degrees = dict(G.out_degree())
+    total_sent = df.groupby('sender_id')['amount'].sum().to_dict()
+    total_received = df.groupby('receiver_id')['amount'].sum().to_dict()
     
-    for node, degree in G.in_degree():
-        # TUNED FOR DEMO: Lowered the anomaly multiplier from 5x to 3x average
-        if degree > (avg_in_degree * 3) and degree > 3:
-            anomaly_accounts.append(node)
+    features = []
+    nodes = list(G.nodes)
+    for node in nodes:
+        features.append([
+            in_degrees.get(node, 0),
+            out_degrees.get(node, 0),
+            float(total_sent.get(node, 0.0)),
+            float(total_received.get(node, 0.0))
+        ])
+    
+    X = np.array(features)
+    
+    # If the network is too small, ML anomaly detection may be unstable
+    if len(nodes) < 10:
+        return []
+        
+    clf = IsolationForest(n_estimators=100, contamination=0.03, random_state=42)
+    clf.fit(X)
+    predictions = clf.predict(X)
+    
+    anomaly_accounts = []
+    for i, pred in enumerate(predictions):
+        if pred == -1:
+            anomaly_accounts.append(nodes[i])
             
     return anomaly_accounts
-

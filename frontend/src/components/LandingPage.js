@@ -243,107 +243,80 @@ export default function LandingPage({ onStart }) {
             </button>
           </motion.div>
 
-          {/* Redesigned Metrics Section - Planet Theme */}
+          {/* Abstract Graph Simulation */}
           <motion.div 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-            className="mt-32 relative mx-auto max-w-4xl"
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-24 relative mx-auto max-w-5xl group"
           >
-             {/* Planet Background Effect */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] pointer-events-none">
-                <div className="absolute inset-0 bg-[#814ac8]/10 rounded-full blur-[100px]" />
-                <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-[#df7afe]/5 rounded-full blur-[80px]" />
-             </div>
+             <div className="absolute -inset-1 bg-gradient-to-r from-[#814ac8] to-[#df7afe] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+             <div className="relative bg-[#0a0a0a] rounded-xl border border-white/10 shadow-2xl overflow-hidden aspect-[16/9] md:aspect-[21/9] ring-1 ring-white/5">
+                
+                {/* Graph Background Pattern */}
+                <div className="absolute inset-0 bg-[url('https://res.cloudinary.com/djv4zxxb2/image/upload/v1718045557/graph-bg_h37w1l.png')] bg-cover bg-center opacity-20 mix-blend-screen grayscale"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/50"></div>
+                
+                {/* Animated Graph Nodes (Simulated) */}
+                <div className="absolute inset-0">
+                    {[...Array(6)].map((_, i) => (
+                        <motion.div
+                            key={i}
+                            className="absolute w-3 h-3 rounded-full bg-[#df7afe] shadow-[0_0_15px_#df7afe]"
+                            initial={{ 
+                                x: Math.random() * 800, 
+                                y: Math.random() * 300,
+                                opacity: 0.3
+                            }}
+                            animate={{ 
+                                x: Math.random() * 800, 
+                                y: Math.random() * 300,
+                                opacity: [0.3, 0.8, 0.3]
+                            }}
+                            transition={{ 
+                                duration: 5 + Math.random() * 5, 
+                                repeat: Infinity, 
+                                repeatType: "mirror",
+                                ease: "easeInOut"
+                            }}
+                        />
+                    ))}
+                </div>
 
-             {/* Floating Card Container */}
-             <motion.div
-               animate={{ y: [-15, 15, -15] }}
-               transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-               className="relative z-10"
-             >
-                <div className="relative bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 rounded-3xl p-1 shadow-2xl ring-1 ring-white/5">
-                   {/* Inner Gradient Border */}
-                   <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-                   
-                   <div className="bg-[#050505]/80 rounded-[20px] p-8 md:p-10 relative overflow-hidden">
-                      {/* Subtle Grid Background */}
-                      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px]" />
-                      
-                      <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-12">
-                         {/* Icon Circle */}
-                         <div className="relative group">
-                            <div className="absolute inset-0 bg-[#df7afe]/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500" />
-                            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
-                               <Shield className="w-10 h-10 text-[#df7afe] drop-shadow-[0_0_10px_rgba(223,122,254,0.5)]" />
-                            </div>
-                            
-                            {/* Orbiting Dot */}
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                              className="absolute inset-[-10px] rounded-full"
-                            >
-                               <div className="w-2 h-2 bg-[#814ac8] rounded-full shadow-[0_0_10px_#814ac8]" />
-                            </motion.div>
+                {/* Dashboard Overlay UI */}
+                <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
+                   <motion.div 
+                     initial={{ x: -50, opacity: 0 }}
+                     animate={{ x: 0, opacity: 1 }}
+                     transition={{ delay: 1 }}
+                     className="bg-[#121212]/80 backdrop-blur-md border border-white/10 p-5 rounded-xl max-w-sm w-full shadow-2xl"
+                   >
+                      <div className="flex items-center gap-3 mb-4">
+                         <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                            <Shield className="w-5 h-5 text-red-500" />
                          </div>
-
-                         {/* Content */}
-                         <div className="flex-1 text-center md:text-left">
-                            <div className="flex flex-col md:flex-row items-center md:items-baseline gap-4 mb-4">
-                               <h3 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Suspicious Activity Detected</h3>
-                               <span className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-red-500 text-xs font-bold uppercase tracking-wider animate-pulse">
-                                  Critical Alert
-                               </span>
-                            </div>
-                            
-                            <p className="text-zinc-400 mb-8 max-w-lg mx-auto md:mx-0 leading-relaxed">
-                               Anomalous layering pattern detected across <span className="text-white font-medium">12 linked accounts</span> with high-velocity transactions matching known smurfing typologies.
-                            </p>
-
-                            {/* Metrics Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 border-t border-white/5 pt-6">
-                               <div>
-                                  <div className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Confidence</div>
-                                  <div className="text-2xl font-bold text-white">99.8%</div>
-                               </div>
-                               <div>
-                                  <div className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Risk Score</div>
-                                  <div className="text-2xl font-bold text-[#df7afe]">High</div>
-                               </div>
-                               <div>
-                                  <div className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Time to Detect</div>
-                                  <div className="text-2xl font-bold text-white">12ms</div>
-                               </div>
-                            </div>
+                         <div>
+                            <h3 className="font-bold text-white text-sm">Suspicious Activity Detected</h3>
+                            <p className="text-xs text-red-400 font-medium">Smurfing Pattern • 98% Confidence</p>
                          </div>
                       </div>
-                   </div>
+                      <div className="space-y-3">
+                         <div className="flex justify-between text-xs text-zinc-500 font-medium">
+                            <span>Accounts Involved</span>
+                            <span className="text-white">12 Nodes</span>
+                         </div>
+                         <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: "98%" }}
+                              transition={{ duration: 1.5, delay: 1.5 }}
+                              className="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
+                            />
+                         </div>
+                      </div>
+                   </motion.div>
                 </div>
-             </motion.div>
-
-             {/* Background Stars / Particles */}
-             {[...Array(5)].map((_, i) => (
-                <motion.div
-                   key={i}
-                   className="absolute w-1 h-1 bg-white rounded-full"
-                   style={{
-                      top: `${Math.random() * 100}%`,
-                      left: `${Math.random() * 100}%`,
-                      opacity: Math.random() * 0.5 + 0.2
-                   }}
-                   animate={{ 
-                      scale: [1, 1.5, 1], 
-                      opacity: [0.3, 0.8, 0.3] 
-                   }}
-                   transition={{ 
-                      duration: 2 + Math.random() * 3, 
-                      repeat: Infinity,
-                      delay: Math.random() * 2 
-                   }}
-                />
-             ))}
+             </div>
           </motion.div>
         </div>
       </section>
