@@ -24,7 +24,7 @@ GraphMule analyzes the **relationships** between accounts, not just the isolated
 ## ✨ Core Features
 
 * **Advanced Graph Algorithms**: Powered by Python's `NetworkX` library to execute deeply nested Cycle Detection and connected-component analysis on raw transaction ledgers.
-* **Premium Fintech Aesthetic**: A stunning UI/UX designed with a `charcoal/graphite` color palette, sophisticated glassmorphism, and a liquid 3D mesh landing background using `react-three-fiber` and ShaderGradients.
+* **Forensic-ledger design system**: Warm paper surfaces, graphite instrument panels, a single cobalt accent and ember reserved for risk. Halftone dot-matrix canvases show a ledger resolving into a graph, with scroll-driven storytelling built on GSAP ScrollTrigger and Anime.js.
 * **Interactive Threat Modeling**: A dynamic, physics-based 2D force graph that allows investigators to visually isolate fraud rings, interrogate individual suspicious accounts, and track relationships in real-time.
 * **Intelligent Dashboard**: At-a-glance summaries calculating total financial risk exposure, flagged networks, and a precise CSV schema modal for clean data ingestion.
 * **One-Click Intelligence Export**: Instantly export the analysis result as a structured JSON report for downstream compliance teams.
@@ -39,7 +39,7 @@ GraphMule perfectly decouples high-performance mathematical modeling from premiu
 * **Framework**: Next.js 14 (React)
 * **Styling**: TailwindCSS
 * **Visual Data Enging**: `react-force-graph-2d`
-* **Animations & 3D**: Framer Motion, `@shadergradient/react`, `@react-three/fiber`, `three.js`
+* **Motion**: GSAP (ScrollTrigger, SplitText) and Anime.js
 * **Icons**: Lucide-React
 
 **Backend (API & Analysis)**
