@@ -1,64 +1,68 @@
 "use client";
 
 import dynamic from 'next/dynamic';
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 
 // Dynamically import specific ForceGraph2D to avoid SSR issues
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
   ssr: false
 });
 
-// Helper for generating distinct colors for rings
-const generateRingColors = (rings) => {
-    const colors = [
-        '#ef4444', '#3b82f6', '#ec4899', '#8b5cf6', 
-        '#10b981', '#f59e0b', '#06b6d4', '#84cc16'
-    ];
+// Ring hues are tuned to read on the graphite panel and stay distinct from each other.
+export const RING_COLORS = [
+    '#ff5c26', '#5b7bff', '#f5a623', '#b57bff',
+    '#2ec4b6', '#ff4d8d', '#9be15d', '#5ac8fa'
+];
+
+export const generateRingColors = (rings) => {
     const map = new Map();
     rings.forEach((r, i) => {
-        map.set(r.ring_id, colors[i % colors.length]);
+        map.set(r.ring_id, RING_COLORS[i % RING_COLORS.length]);
     });
     return map;
 };
 
-export default function GraphVisualizer({ data, suspiciousAccounts, fraudRings, selectedRingId, onNodeClick }) {
+const SAFE = 'rgba(237, 235, 230, 0.38)';
+const SUSPICIOUS = '#f5a623';
+
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const tooltip = (title, lines) => `
+  <div style="background:#1a1a19;padding:8px 10px;border-radius:8px;border:1px solid rgba(237,235,230,0.12);font-family:var(--font-mono),monospace;font-size:11px;line-height:1.5;color:#edebe6;box-shadow:0 12px 30px rgba(0,0,0,0.4)">
+    <div style="font-weight:600;margin-bottom:2px">${escapeHtml(title)}</div>
+    ${lines.map(l => `<div style="color:#928f89">${l}</div>`).join('')}
+  </div>`;
+
+const GraphVisualizer = forwardRef(function GraphVisualizer({ data, suspiciousAccounts, fraudRings, selectedRingId, selectedNodeId, onNodeClick }, ref) {
   const fgRef = useRef();
-  
+
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [hoverNode, setHoverNode] = useState(null);
-  
+  const fitted = useRef(false);
+
   // Custom container dimensions
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const containerRef = useRef(null);
 
+  useImperativeHandle(ref, () => ({
+    fit: () => fgRef.current?.zoomToFit(600, 60),
+  }));
+
   useEffect(() => {
-    const handleResize = () => {
-        if (containerRef.current) {
-            setDimensions({
-                width: containerRef.current.clientWidth,
-                height: containerRef.current.clientHeight
-            });
-        }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const el = containerRef.current;
+    const observer = new ResizeObserver(() => {
+        setDimensions({ width: el.clientWidth, height: el.clientHeight });
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
     if (data) {
+        fitted.current = false;
         setGraphData(data);
     }
   }, [data]);
-
-  // Center the graph when data loads
-  useEffect(() => {
-     if (fgRef.current && graphData.nodes.length > 0) {
-        setTimeout(() => {
-           fgRef.current.zoomToFit(400, 50);
-        }, 300);
-     }
-  }, [graphData]);
 
   // Fast lookups
   const suspiciousMap = useMemo(() => {
@@ -82,7 +86,7 @@ export default function GraphVisualizer({ data, suspiciousAccounts, fraudRings, 
       });
       return members;
   }, [fraudRings]);
-  
+
   const ringColorMap = useMemo(() => generateRingColors(fraudRings), [fraudRings]);
 
   // Determine which nodes belong to the currently selected ring
@@ -91,25 +95,20 @@ export default function GraphVisualizer({ data, suspiciousAccounts, fraudRings, 
       return new Set(ringMap.get(selectedRingId).member_accounts);
   }, [selectedRingId, ringMap]);
 
+  // Frame the selected ring so it's visible without manual zooming
+  useEffect(() => {
+      if (!selectedRingMembers || !fgRef.current) return;
+      fgRef.current.zoomToFit(700, 140, node => selectedRingMembers.has(node.id));
+  }, [selectedRingMembers]);
+
   // Node Label for Hover
   const getNodeLabel = useCallback((node) => {
       const acc = suspiciousMap.get(node.id);
       if (acc) {
-          const patterns = acc.detected_patterns.length > 0 ? acc.detected_patterns.join(', ') : 'None';
-          return `
-            <div style="background: rgba(0,0,0,0.8); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); font-family: sans-serif; font-size: 12px; color: white;">
-                <strong>${node.id}</strong><br/>
-                Score: ${Math.round(acc.suspicion_score)}<br/>
-                Patterns: <span style="color:#df7afe">${patterns}</span>
-            </div>
-          `;
+          const patterns = acc.detected_patterns.length > 0 ? acc.detected_patterns.join(', ') : 'none';
+          return tooltip(node.id, [`score ${Math.round(acc.suspicion_score)} · ${escapeHtml(acc.ring_id)}`, escapeHtml(patterns)]);
       }
-      return `
-        <div style="background: rgba(0,0,0,0.8); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); font-family: sans-serif; font-size: 12px; color: white;">
-            <strong>${node.id}</strong><br/>
-            Safe Account
-        </div>
-      `;
+      return tooltip(node.id, ['no risk signals']);
   }, [suspiciousMap]);
 
   // Custom Node Styling
@@ -118,33 +117,34 @@ export default function GraphVisualizer({ data, suspiciousAccounts, fraudRings, 
     const ringId = ringMembers.get(node.id);
     const isRingMember = !!ringId;
     const isHovered = node === hoverNode;
+    const isSelected = node.id === selectedNodeId;
     const isSelectedRing = selectedRingMembers ? selectedRingMembers.has(node.id) : false;
-    const dimNode = selectedRingMembers && !isSelectedRing;
-
-    // Node size
-    let r = 3;
-    if (isSuspicious) r = 4;
-    if (isRingMember) r = 6;
-    if (isHovered) r += 2;
-
-    // Base Colors
-    let color = '#2dd4bf'; // Teal-400 for safe
-    if (isSuspicious) color = '#f97316'; // Orange-500
-    if (isRingMember) color = ringColorMap.get(ringId); // Unique ring color
+    const dimNode = selectedRingMembers && !isSelectedRing && !isSelected;
 
     // Focus mode modifications
     if (dimNode) {
-        ctx.fillStyle = 'rgba(71, 85, 105, 0.3)'; // Dimmed Slate
+        ctx.fillStyle = 'rgba(237, 235, 230, 0.08)';
         ctx.beginPath(); ctx.arc(node.x, node.y, 2, 0, 2 * Math.PI, false); ctx.fill();
         return;
     }
 
-    // Glow Effect
-    if (isRingMember || isSuspicious || isHovered) {
-        ctx.shadowBlur = isHovered ? 15 : 10;
-        ctx.shadowColor = color;
-    } else {
-        ctx.shadowBlur = 0;
+    // Node size
+    let r = 2.6;
+    if (isSuspicious) r = 3.6;
+    if (isRingMember) r = 5;
+    if (isHovered || isSelected) r += 1.5;
+
+    // Base Colors
+    let color = SAFE;
+    if (isSuspicious) color = SUSPICIOUS;
+    if (isRingMember) color = ringColorMap.get(ringId);
+
+    // Halo for flagged accounts
+    if (isRingMember || isHovered || isSelected) {
+        ctx.fillStyle = (isRingMember ? color : '#edebe6') + '22';
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, r * 2.1, 0, 2 * Math.PI, false);
+        ctx.fill();
     }
 
     ctx.fillStyle = color;
@@ -152,41 +152,43 @@ export default function GraphVisualizer({ data, suspiciousAccounts, fraudRings, 
     ctx.arc(node.x, node.y, r, 0, 2 * Math.PI, false);
     ctx.fill();
 
-    // Border for highly suspicious or hovered
-    if (isHovered || isRingMember) {
+    if (isHovered || isSelected) {
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = isHovered ? 1.5 / globalScale : 0.5 / globalScale;
+        ctx.lineWidth = 1.5 / globalScale;
         ctx.stroke();
     }
-    
-    // Clear shadow
-    ctx.shadowBlur = 0;
 
-  }, [suspiciousMap, ringMembers, hoverNode, selectedRingMembers, ringColorMap]);
+    // Labels appear once zoomed in enough to read them
+    if (globalScale > 2.6 && (isRingMember || isHovered || isSelected)) {
+        ctx.font = `${10 / globalScale}px ui-monospace, monospace`;
+        ctx.fillStyle = 'rgba(237, 235, 230, 0.8)';
+        ctx.textAlign = 'center';
+        ctx.fillText(node.id, node.x, node.y + r + 9 / globalScale);
+    }
+
+  }, [suspiciousMap, ringMembers, hoverNode, selectedNodeId, selectedRingMembers, ringColorMap]);
 
   // Custom Link Styling
   const linkColor = useCallback((link) => {
       const dimLink = selectedRingMembers && (!selectedRingMembers.has(link.source.id) || !selectedRingMembers.has(link.target.id));
-      if (dimLink) return 'rgba(51, 65, 85, 0.1)'; // Very faint slate-700
-      
+      if (dimLink) return 'rgba(237, 235, 230, 0.04)';
+
       const sourceRing = ringMembers.get(link.source.id);
       const targetRing = ringMembers.get(link.target.id);
       const isRingEdge = sourceRing && targetRing && sourceRing === targetRing;
-      
+
       if (isRingEdge) {
-          const hex = ringColorMap.get(sourceRing);
-          // Return the hex color with 50% opacity hack
-          return hex + '80'; // Add alpha
+          return ringColorMap.get(sourceRing) + '99';
       }
-      
-      return 'rgba(148, 163, 184, 0.2)'; // Slate-400 with opacity
+
+      return 'rgba(237, 235, 230, 0.14)';
   }, [selectedRingMembers, ringMembers, ringColorMap]);
 
   const handleNodeClick = useCallback(node => {
      // Center camera on node
-     fgRef.current.centerAt(node.x, node.y, 1000);
-     fgRef.current.zoom(4, 1000);
-     
+     fgRef.current.centerAt(node.x, node.y, 800);
+     fgRef.current.zoom(Math.max(fgRef.current.zoom(), 3), 800);
+
      // Trigger callback
      if (onNodeClick) {
          const accInfo = suspiciousMap.get(node.id) || {
@@ -199,49 +201,44 @@ export default function GraphVisualizer({ data, suspiciousAccounts, fraudRings, 
      }
   }, [fgRef, onNodeClick, suspiciousMap]);
 
+  const handleEngineStop = useCallback(() => {
+      if (fitted.current) return;
+      fitted.current = true;
+      fgRef.current?.zoomToFit(600, 60);
+  }, []);
+
   return (
-    <div ref={containerRef} className="w-full h-full relative group">
-      <div className="absolute top-4 left-4 z-10 bg-[#0a0a0a]/80 backdrop-blur-md border border-white/10 p-3 rounded-xl text-white text-xs shadow-xl pointer-events-none transition-opacity duration-300">
-         <div className="flex items-center gap-3 mb-2">
-             <div className="relative flex h-3 w-3">
-                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                 <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
-             </div>
-             <span className="font-medium">Fraud Ring Member (Unique Colors)</span>
-         </div>
-         <div className="flex items-center gap-3 mb-2">
-             <span className="w-3 h-3 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316]"></span> 
-             <span className="font-medium text-zinc-300">Suspicious Account</span>
-         </div>
-         <div className="flex items-center gap-3">
-             <span className="w-3 h-3 rounded-full bg-teal-400/50"></span> 
-             <span className="font-medium text-zinc-400">Standard Account</span>
-         </div>
-      </div>
-      
+    <div ref={containerRef} className="absolute inset-0">
       {dimensions.width > 0 && dimensions.height > 0 && (
          <ForceGraph2D
             ref={fgRef}
             graphData={graphData}
             width={dimensions.width}
             height={dimensions.height}
-            backgroundColor="transparent"
+            backgroundColor="rgba(0,0,0,0)"
             nodeRelSize={4}
             nodeCanvasObject={paintNode}
             nodeLabel={getNodeLabel}
             linkColor={linkColor}
-            linkWidth={link => (hoverNode === link.source || hoverNode === link.target) ? 2 : 1}
-            linkDirectionalArrowLength={link => (hoverNode === link.source || hoverNode === link.target) ? 5 : 3.5}
+            linkWidth={link => (hoverNode === link.source || hoverNode === link.target) ? 1.8 : 0.8}
+            linkDirectionalArrowLength={link => (hoverNode === link.source || hoverNode === link.target) ? 4.5 : 3}
             linkDirectionalArrowRelPos={1}
-            linkCurvature={0.2}
-            onNodeHover={node => setHoverNode(node)}
+            linkCurvature={0.18}
+            onNodeHover={node => {
+                setHoverNode(node);
+                if (containerRef.current) containerRef.current.style.cursor = node ? 'pointer' : '';
+            }}
             onNodeClick={handleNodeClick}
+            onEngineStop={handleEngineStop}
             d3AlphaDecay={0.02}
             d3VelocityDecay={0.3}
-            cooldownTicks={100}
+            cooldownTicks={120}
+            maxZoom={5}
+            minZoom={0.3}
          />
       )}
     </div>
   );
-}
+});
 
+export default GraphVisualizer;

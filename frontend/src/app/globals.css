@@ -2,26 +2,165 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------------
+   Design tokens — "forensic ledger"
+   Warm paper surfaces for reading, graphite panels for instruments,
+   one cobalt accent for action and ember reserved for risk.
+--------------------------------------------------------------------------- */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --paper: 239 236 229;
+  --paper-2: 230 226 217;
+  --paper-3: 250 249 246;
+  --ink: 20 20 19;
+  --ink-soft: 58 57 54;
+  --ink-muted: 102 99 92;
+
+  --graphite: 17 17 16;
+  --graphite-2: 26 26 25;
+  --graphite-3: 38 38 36;
+  --fog: 237 235 230;
+  --fog-muted: 146 143 137;
+
+  --cobalt: 39 71 255;
+  --cobalt-deep: 24 50 214;
+  --ember: 255 92 38;
+  --amber: 245 166 35;
+  --moss: 46 160 112;
+  --danger: 220 52 44;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  ::selection {
+    background: rgb(var(--cobalt) / 0.9);
+    color: white;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--cobalt));
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  /* SplitText line masks clip descenders unless given a little room. */
+  [data-hero-title] > * {
+    padding-bottom: 0.12em;
+    margin-bottom: -0.12em;
+  }
+
+  /* Hero elements stay hidden until GSAP reveals them (only when JS runs). */
+  .js [data-intro] {
+    visibility: hidden;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+@layer components {
+  .shell {
+    @apply mx-auto w-full max-w-shell px-4 sm:px-6 lg:px-10;
+  }
+
+  .eyebrow {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.08em];
+  }
+
+  .display {
+    @apply font-medium leading-[0.95] tracking-display;
+  }
+
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-[10px] px-5 text-[15px] font-medium transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out disabled:pointer-events-none disabled:opacity-40;
+    height: 44px;
+  }
+  .btn-sm {
+    @apply px-3.5 text-sm;
+    height: 36px;
+  }
+  .btn-primary {
+    @apply bg-cobalt text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.18),0_1px_2px_rgb(0_0_0/0.2)] hover:bg-cobalt-deep active:translate-y-px;
+  }
+  .btn-outline {
+    @apply border border-ink/20 text-ink hover:border-ink/40 hover:bg-ink/[0.03];
+  }
+  .btn-dark {
+    @apply bg-ink text-paper hover:bg-ink-soft;
+  }
+  .btn-light {
+    @apply bg-fog text-graphite hover:bg-white;
+  }
+  .btn-outline-dark {
+    @apply border border-fog/20 text-fog hover:border-fog/40 hover:bg-fog/[0.04];
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em];
+  }
+
+  .card {
+    @apply rounded-[var(--radius)] border border-ink/10 bg-paper-3;
+  }
+
+  .panel {
+    @apply rounded-[var(--radius-lg)] border border-fog/10 bg-graphite-2 text-fog;
+  }
+
+  /* Diagonal hatching used as a structural separator in dark sections. */
+  .hatch {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgb(var(--fog) / 0.09) 0 1px,
+      transparent 1px 7px
+    );
+  }
+  .hatch-ink {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgb(var(--ink) / 0.1) 0 1px,
+      transparent 1px 7px
+    );
+  }
+
+  .link-underline {
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    transition: background-size 0.35s var(--ease-out);
+  }
+  .link-underline:hover {
+    background-size: 100% 1px;
+  }
+
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--ink) / 0.2) transparent;
+  }
+  .scroll-thin-dark {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--fog) / 0.2) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .js [data-intro] {
+    visibility: visible;
+  }
 }
